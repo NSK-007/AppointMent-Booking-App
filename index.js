@@ -1,23 +1,4 @@
 const crudURL = 'https://crudcrud.com/api/2a816f4c8d994577804d5ea38fe9f43c';
-function getUniqueId(){
-    let id=0;
-    if(localStorage.length==0)
-        return 1;
-    let max = 1;
-    for(x in localStorage){
-        if(x=='length'){
-            // console.log("ID:"+id, parseInt(id)+1)
-            console.log(max);
-            return max+1;
-        }
-        if(max<parseInt(x))
-        max = parseInt(x);
-        
-    }
-    // console.log(id);
-    // console.log(localStorage.length)
-}
-
 loadAppointments();
 
 //submit button
@@ -57,10 +38,8 @@ function addExpense(e){
         }, 3000);
         return;
     }
-    var id = getUniqueId();
-    let li = createNewLi(id, amount, type, desc);
-    let itemList = document.querySelector('ul');
-    itemList.appendChild(li);
+    // var id = getUniqueId();
+   
     let obj = {
         name: amount,
         phone: type,
@@ -69,14 +48,15 @@ function addExpense(e){
     axios.post(`${crudURL}/appointmentData`, obj)
         .then(response => {
             console.log(response.data)
+            let li = createNewLi(response.data._id, obj.name, obj.mail, obj.phone);
+            let itemList = document.querySelector('ul');
+            itemList.appendChild(li);
+            document.forms['form-body'].reset();
         })
         .catch(err => {
             console.log(err)
         })
-    // localStorage.setItem(id, JSON.stringify(obj));
-    document.forms['form-body']['name'].value = '';
-    document.forms['form-body']['mail'].value = '';
-    document.forms['form-body']['number'].value = '';
+    
 }
 
 //creating new List Item
@@ -118,7 +98,6 @@ function removeExpense(e){
             .then(response => console.log(response))
             .catch(err => console.log(err))
         // console.log(e.target.id[e.target.id.length-1]);
-        // deleteInLocalStorage(e.target.id.substring(6, e.target.id.length));
         itemList.removeChild(li);
     }
 }
@@ -127,7 +106,6 @@ function editExpense(e){
     if(e.target.id.startsWith('edit')){
         let editListId = e.target.id.substring(4, e.target.id.length);
         // console.log(editListId);
-        // let obj = JSON.parse(localStorage.getItem(id));
        
         axios.get(`${crudURL}/appointmentData/${editListId}`)
                 .then(response => {
@@ -198,7 +176,6 @@ function editExpense(e){
                 })
                 .catch(err => console.log(err))    
 
-        // // deleteInLocalStorage(e.target.id.substring(4, e.target.id.length));
     }
 }
 
@@ -219,12 +196,3 @@ function loadAppointments(){
         .catch(err => console.log(err))
     
 }
-
-// function deleteInLocalStorage(id){
-//     for(x in localStorage){
-//         if(parseInt(x)==parseInt(id)){
-//             localStorage.removeItem(x); 
-//             return;
-//         }
-//     }
-// }
