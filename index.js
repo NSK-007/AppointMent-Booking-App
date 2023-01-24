@@ -1,5 +1,10 @@
-const crudURL = 'https://crudcrud.com/api/2a816f4c8d994577804d5ea38fe9f43c';
-loadAppointments();
+const crudURL = 'https://crudcrud.com/api/fa28420a772b4af1ab55fbbac942a91a';
+
+window.addEventListener('DOMContentLoaded', function(){
+    loadAppointments();
+})
+
+var sub_up = 'submit';
 
 //submit button
 let form = document.querySelector('#form-id');
@@ -16,10 +21,13 @@ itemList.addEventListener('click', removeExpense);
 //editing expense
 itemList.addEventListener('click', editExpense);
 
+let update_btn = document.forms['form-body']['update_btn'];
+update_btn.addEventListener('click', updateAppointment);
+
 //updating appointment
 
 //add Expense
-function addExpense(e){
+function addExpense(e, sub_up){
     e.preventDefault();
     let amount = document.forms['form-body']['name'].value;
     let desc = document.forms['form-body']['mail'].value;
@@ -45,17 +53,18 @@ function addExpense(e){
         phone: type,
         mail: desc
     }
-    axios.post(`${crudURL}/appointmentData`, obj)
-        .then(response => {
-            console.log(response.data)
-            let li = createNewLi(response.data._id, obj.name, obj.mail, obj.phone);
-            let itemList = document.querySelector('ul');
-            itemList.appendChild(li);
-            document.forms['form-body'].reset();
-        })
-        .catch(err => {
-            console.log(err)
-        })
+
+        axios.post(`${crudURL}/appointmentData`, obj)
+            .then(response => {
+                console.log(response.data)
+                let li = createNewLi(response.data._id, obj.name, obj.mail, obj.phone);
+                let itemList = document.querySelector('ul');
+                itemList.appendChild(li);
+                document.forms['form-body'].reset();
+            })
+            .catch(err => {
+                console.log(err)
+            })
     
 }
 
@@ -105,79 +114,69 @@ function removeExpense(e){
 function editExpense(e){
     if(e.target.id.startsWith('edit')){
         let editListId = e.target.id.substring(4, e.target.id.length);
+
+        let li = e.target.parentElement.parentElement;
+        itemList.removeChild(li);
         // console.log(editListId);
-       
-        axios.get(`${crudURL}/appointmentData/${editListId}`)
-                .then(response => {
-                    // console.log(response)
-                    editObj = {
-                        name : response.data.name,
-                        mail : response.data.mail,
-                        id : response.data._id,
-                        phone : response.data.phone
-                    }
+        let asyncOp = async () => {
+            let appointment = axios.get(`${crudURL}/appointmentData/${editListId}`)
+                .then(response => response.data)
+                .catch(err => console.log(err))
 
-                    document.forms['form-body']['name'].value = editObj.name;
-                    document.forms['form-body']['mail'].value = editObj.mail;
-                    document.forms['form-body']['number'].value = editObj.phone;
+            let updateObj = await appointment;
+            console.log(updateObj)
+            document.forms['form-body']['name'].value = updateObj.name;
+            document.forms['form-body']['mail'].value = updateObj.mail;
+            document.forms['form-body']['number'].value = updateObj.phone;    
 
-                    document.forms['form-body']['submit_btn'].type = "button";
-                    document.forms['form-body']['submit_btn'].value = "update";
-
-                    let li = e.target.parentElement.parentElement;
-                    itemList.removeChild(li);
-
-                    document.forms['form-body']['submit_btn'].addEventListener('click', function(){
-                        let amount = document.forms['form-body']['name'].value;
-                        let desc = document.forms['form-body']['mail'].value;
-                        let type = document.forms['form-body']['number'].value;
-                        // console.log(amount, desc, type);
-
-                        if (amount == null || amount == '' || desc == null || desc == '' || type == null || type == '') {
-                            // console.log('Empty fields');
-                            let err_div = document.querySelector('#error');
-                            err_div.className = 'alert alert-danger';
-                            err_div.innerHTML = 'Please Enter all fields';
-
-                            setTimeout(function () {
-                                err_div.className = '';
-                                err_div.innerHTML = '';
-                            }, 3000);
-                            return;
-                        }
-
-                        let updateObj = {
-                            id : editObj.id,
-                            name: amount,
-                            phone: type,
-                            mail: desc
-                        }
-
-
-                        axios.put(`${crudURL}/appointmentData/${editObj.id}`, updateObj)
-                        .then(response => {
-                            // console.log(editObj); console.log(response)
-                            document.forms['form-body'].reset();
-                            console.log(response);
-                            // loadAppointments();
-
-                            let li = createNewLi(updateObj.id, updateObj.name, updateObj.mail, updateObj.phone);
-                            itemList.appendChild(li);
-                            // console.log(response.data)
-
-                            document.forms['form-body']['submit_btn'].type = "submit";
-                            document.forms['form-body']['submit_btn'].value = "Submit";
-                        })
-                        .catch(err => console.log(err))
-
-
-                    })
-                    
-                })
-                .catch(err => console.log(err))    
-
+            document.forms['form-body']['submit_btn'].style.display = "none";
+            document.forms['form-body']['update_btn'].style.display = "block";
+            document.forms['form-body']['update_btn'].id = updateObj._id;
+            
+        }
+        asyncOp();
     }
 }
+
+function updateAppointment(e){
+    e.preventDefault();
+    console.log(e.target.id)
+    let amount = document.forms['form-body']['name'].value;
+    let desc = document.forms['form-body']['mail'].value;
+    let type = document.forms['form-body']['number'].value;
+    // console.log(amount, desc, type);
+
+    if(amount==null || amount=='' || desc==null || desc=='' || type==null || type==''){
+        // console.log('Empty fields');
+        let err_div = document.querySelector('#error');
+        err_div.className = 'alert alert-danger';
+        err_div.innerHTML = 'Please Enter all fields';
+
+        setTimeout(function(){
+            err_div.className = '';
+            err_div.innerHTML = '';
+        }, 3000);
+        return;
+    }
+    // var id = getUniqueId();
+   
+    let obj = {
+        name: amount,
+        phone: type,
+        mail: desc
+    }
+    axios.put(`${crudURL}/appointmentData/${e.target.id}`, obj)
+        .then(response => {
+            var li = createNewLi(e.target.id, obj.name, obj.mail, obj.phone);
+            itemList.appendChild(li);
+            document.forms['form-body'].reset();
+            document.forms['form-body']['update_btn'].style.display = "none";
+            document.forms['form-body']['submit_btn'].style.display = "block";
+        })
+        .catch(err => console.log(err))
+}
+
+
 
 function loadAppointments(){
     axios.get(`${crudURL}/appointmentData`)
