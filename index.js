@@ -58,11 +58,11 @@ function addAppointment(e, sub_up) {
         axios.post(`${crudURL}/add-appointment`, obj)
             .then(response => {
                 // console.log(response.data)
-                let li = createNewLi(response.data._id, obj.name, obj.mail, obj.phone);
+                let li = createNewLi(response.data.id, obj.name, obj.mail, obj.phone);
                 let itemList = document.querySelector('ul');
                 itemList.appendChild(li);
                 document.forms['form-body'].reset();
-                response.redirect('/');
+                // response.redirect('/');
             })
             .catch(err => {
                 console.log(err)
@@ -114,7 +114,7 @@ function removeAppointment(e) {
             let li = e.target.parentElement.parentElement;
             // console.log(e.target.id.substring(6, e.target.id.length))
             let deletedListId = e.target.id.substring(6, e.target.id.length);
-            axios.delete(`${crudURL}/appointmentData/${deletedListId}`)
+            axios.delete(`${crudURL}/delete-appointment/${deletedListId}`)
                 .then(response => (response))
                 .catch(err => console.log(err))
             // console.log(e.target.id[e.target.id.length-1]);
@@ -128,9 +128,10 @@ function removeAppointment(e) {
 
 function editAppointment(e) {
     try {
+        // loadAppointments();
         if (e.target.id.startsWith('edit')) {
             let editListId = e.target.id.substring(4, e.target.id.length);
-
+            console.log(editListId);
             let li = e.target.parentElement.parentElement;
             itemList.removeChild(li);
             // console.log(editListId);
@@ -143,19 +144,19 @@ function editAppointment(e) {
                     let updateObj = await appointment;
                     // console.log(updateObj)
                     document.forms['form-body']['name'].value = updateObj.name;
-                    document.forms['form-body']['mail'].value = updateObj.mail;
+                    document.forms['form-body']['mail'].value = updateObj.email;
                     document.forms['form-body']['number'].value = updateObj.phone;
 
                     document.forms['form-body']['submit_btn'].style.display = "none";
                     document.forms['form-body']['update_btn'].style.display = "block";
-                    document.forms['form-body']['update_btn'].id = updateObj._id;
+                    document.forms['form-body']['update_btn'].id = updateObj.id;
 
                 }
+                asyncOp();
             }
             catch (err) {
                 console.log(err)
             }
-            asyncOp();
         }
     }
     catch (err) {
@@ -191,7 +192,7 @@ function updateAppointment(e) {
             phone: type,
             mail: desc
         }
-        axios.put(`${crudURL}/appointmentData/${e.target.id}`, obj)
+        axios.put(`${crudURL}/edit-appointment/${e.target.id}`, obj)
             .then(response => {
                 var li = createNewLi(e.target.id, obj.name, obj.mail, obj.phone);
                 itemList.appendChild(li);
@@ -216,12 +217,14 @@ function loadAppointments() {
                 let mail = response.data[i].email;
                 let name = response.data[i].name;
                 let phone = response.data[i].phone;
-                let id = response.data[i]._id;
+                let id = response.data[i].id;
                 let li = createNewLi(id, name, mail, phone);
                 // console.log(response.data[i]);
                 // console.log(id, name, mail, phone);
                 itemList.appendChild(li);
             }
+        // console.log(response.data);
+
         })
         .catch(err => console.log(err))
     }
