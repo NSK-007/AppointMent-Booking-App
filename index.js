@@ -62,6 +62,7 @@ function addAppointment(e, sub_up) {
                 let itemList = document.querySelector('ul');
                 itemList.appendChild(li);
                 document.forms['form-body'].reset();
+                response.redirect('/');
             })
             .catch(err => {
                 console.log(err)
@@ -212,7 +213,7 @@ function loadAppointments() {
         axios.get(`${crudURL}/`)
         .then(response => {
             for (let i = 0; i < response.data.length; i++) {
-                let mail = response.data[i].mail;
+                let mail = response.data[i].email;
                 let name = response.data[i].name;
                 let phone = response.data[i].phone;
                 let id = response.data[i]._id;
